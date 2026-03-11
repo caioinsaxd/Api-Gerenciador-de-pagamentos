@@ -16,13 +16,5 @@ router
       })
       .prefix('auth')
       .as('auth')
-
-    router
-      .group(() => {
-        router.get('/profile', [controllers.Profile, 'show'])
-      })
-      .prefix('account')
-      .as('profile')
-      .use(middleware.auth())
   })
   .prefix('/api/v1')
