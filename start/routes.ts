@@ -5,10 +5,14 @@ import PurchaseController from '#controllers/purchase_controller'
 import GatewayController from '#controllers/gateway_controller'
 import ClientController from '#controllers/client_controller'
 import TransactionController from '#controllers/transaction_controller'
+import SwaggerController from '#controllers/swagger_controller'
 
 router.get('/', () => {
   return { hello: 'world' }
 })
+
+router.get('/docs', [SwaggerController, 'index'])
+router.get('/docs/openapi.json', [SwaggerController, 'spec'])
 
 const publicRoutes = router.group(() => {
   router.post('purchase', [PurchaseController, 'store'])
