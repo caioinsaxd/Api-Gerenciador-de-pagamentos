@@ -65,6 +65,7 @@ export class Gateway1 extends BaseGateway {
     return {
       success: true,
       externalId: String(result.id),
+      gatewayName: this.name,
     }
   }
 

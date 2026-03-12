@@ -9,6 +9,7 @@ export interface PaymentData {
 export interface PaymentResult {
   success: boolean
   externalId?: string
+  gatewayName?: string
   error?: string
 }
 
