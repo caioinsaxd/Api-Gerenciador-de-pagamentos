@@ -54,7 +54,7 @@ export class GatewaySchema extends BaseModel {
   declare createdAt: DateTime
   @column({ isPrimary: true })
   declare id: number
-  @column()
+  @column({ serializeAs: 'isActive' })
   declare isActive: boolean | null
   @column()
   declare name: string
