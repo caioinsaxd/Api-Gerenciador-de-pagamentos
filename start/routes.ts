@@ -14,19 +14,17 @@ router.get('/', () => {
 router.get('/docs', [SwaggerController, 'index'])
 router.get('/docs/openapi.json', [SwaggerController, 'spec'])
 
-const publicRoutes = router.group(() => {
-  router.post('purchase', [PurchaseController, 'store'])
-})
+router.group(() => {
+  router.post('auth/login', [controllers.AccessToken, 'store'])
+  router.post('auth/signup', [controllers.NewAccount, 'store'])
+}).prefix('/api/v1')
 
-const authRoutes = router.group(() => {
-  router
-    .group(() => {
-      router.post('signup', [controllers.NewAccount, 'store'])
-      router.post('login', [controllers.AccessToken, 'store'])
-      router.post('logout', [controllers.AccessToken, 'destroy']).use(middleware.auth())
-    })
-    .prefix('auth')
-    .as('auth')
+router.group(() => {
+  router.post('purchase', [PurchaseController, 'store'])
+}).prefix('/api/v1')
+
+router.group(() => {
+  router.post('auth/logout', [controllers.AccessToken, 'destroy'])
 
   router.get('gateways', [GatewayController, 'index'])
   router.patch('gateways/:id', [GatewayController, 'update'])
@@ -37,11 +35,4 @@ const authRoutes = router.group(() => {
   router.get('transactions', [TransactionController, 'index'])
   router.get('transactions/:id', [TransactionController, 'show'])
   router.post('transactions/:id/refund', [TransactionController, 'refund'])
-}).use(middleware.auth())
-
-router
-  .group(() => {
-    publicRoutes
-    authRoutes
-  })
-  .prefix('/api/v1')
+}).use(middleware.auth()).prefix('/api/v1')
