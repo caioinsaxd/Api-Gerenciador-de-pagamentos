@@ -33,7 +33,13 @@ export default class PurchaseController {
       })
     }
 
-    const gateway = await Gateway.query().orderBy('priority', 'asc').first()
+    let gateway = null
+    if (paymentResult.gatewayName) {
+      gateway = await Gateway.query().where('name', paymentResult.gatewayName).first()
+    }
+    if (!gateway) {
+      gateway = await Gateway.query().orderBy('priority', 'asc').first()
+    }
 
     const transaction = await Transaction.create({
       clientId: client.id,
