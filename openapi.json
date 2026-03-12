@@ -1,0 +1,523 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "API Gerenciador de Pagamentos",
+    "description": "API para gerenciar pagamentos entre múltiplos gateways com suporte a fallback automático",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Suporte API",
+      "email": "suporte@exemplo.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3333/api/v1",
+      "description": "Servidor de desenvolvimento"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "SignupRequest": {
+        "type": "object",
+        "required": ["email", "password", "passwordConfirmation"],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "usuario@exemplo.com"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "example": "senha123"
+          },
+          "passwordConfirmation": {
+            "type": "string",
+            "format": "password",
+            "example": "senha123"
+          }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "required": ["email", "password"],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "usuario@exemplo.com"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "example": "senha123"
+          }
+        }
+      },
+      "LoginResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "user": {
+                "type": "object",
+                "properties": {
+                  "id": { "type": "integer" },
+                  "email": { "type": "string" },
+                  "role": { "type": "string" }
+                }
+              },
+              "token": {
+                "type": "string",
+                "example": "abc123..."
+              }
+            }
+          }
+        }
+      },
+      "PurchaseRequest": {
+        "type": "object",
+        "required": ["amount", "name", "email", "cardNumber", "cvv"],
+        "properties": {
+          "amount": {
+            "type": "integer",
+            "description": "Valor em centavos",
+            "example": 1000
+          },
+          "name": {
+            "type": "string",
+            "example": "João Silva"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "joao@exemplo.com"
+          },
+          "cardNumber": {
+            "type": "string",
+            "description": "Número do cartão com 16 dígitos",
+            "example": "5569000000006063"
+          },
+          "cvv": {
+            "type": "string",
+            "description": "CVV com 3 dígitos",
+            "example": "010"
+          }
+        }
+      },
+      "PurchaseResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "transactionId": { "type": "integer" },
+          "externalId": { "type": "string" },
+          "amount": { "type": "integer" },
+          "status": { "type": "string" }
+        }
+      },
+      "Gateway": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "name": { "type": "string" },
+          "isActive": { "type": "boolean" },
+          "priority": { "type": "integer" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Client": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "name": { "type": "string" },
+          "email": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Transaction": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "externalId": { "type": "string" },
+          "amount": { "type": "integer" },
+          "status": { "type": "string", "enum": ["PENDING", "APPROVED", "DECLINED", "REFUNDED"] },
+          "cardLastNumbers": { "type": "string" },
+          "clientId": { "type": "integer" },
+          "gatewayId": { "type": "integer" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "RefundResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "message": { "type": "string" },
+          "transactionId": { "type": "integer" }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": { "type": "string" }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/auth/signup": {
+      "post": {
+        "summary": "Cadastrar usuário",
+        "description": "Cria um novo usuário no sistema",
+        "tags": ["Autenticação"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/SignupRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Usuário criado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/LoginResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "Dados inválidos",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "summary": "Login do usuário",
+        "description": "Autentica o usuário e retorna o token JWT",
+        "tags": ["Autenticação"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LoginRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login realizado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/LoginResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Credenciais inválidas",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/purchase": {
+      "post": {
+        "summary": "Processar pagamento",
+        "description": "Processa um pagamento através dos gateways disponíveis com fallback automático",
+        "tags": ["Pagamentos"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PurchaseRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Pagamento realizado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PurchaseResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Pagamento falhou",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/gateways": {
+      "get": {
+        "summary": "Listar gateways",
+        "description": "Retorna lista de todos os gateways de pagamento",
+        "tags": ["Gateways"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Gateway" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/gateways/{id}": {
+      "patch": {
+        "summary": "Atualizar gateway",
+        "description": "Ativa/desativa gateway ou altera prioridade",
+        "tags": ["Gateways"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "isActive": { "type": "boolean", "example": true },
+                  "priority": { "type": "integer", "example": 1 },
+                  "name": { "type": "string", "example": "Gateway 1" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Gateway atualizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/Gateway" }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Gateway não encontrado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/clients": {
+      "get": {
+        "summary": "Listar clientes",
+        "description": "Retorna lista de todos os clientes",
+        "tags": ["Clientes"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Client" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/clients/{id}": {
+      "get": {
+        "summary": "Detalhes do cliente",
+        "description": "Retorna detalhes do cliente com todas as suas transações",
+        "tags": ["Clientes"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": { "type": "integer" },
+                        "name": { "type": "string" },
+                        "email": { "type": "string" },
+                        "transactions": {
+                          "type": "array",
+                          "items": { "$ref": "#/components/schemas/Transaction" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Cliente não encontrado"
+          }
+        }
+      }
+    },
+    "/transactions": {
+      "get": {
+        "summary": "Listar transações",
+        "description": "Retorna lista de todas as transações",
+        "tags": ["Transações"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Transaction" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/transactions/{id}": {
+      "get": {
+        "summary": "Detalhes da transação",
+        "description": "Retorna informações detalhadas sobre uma transação específica",
+        "tags": ["Transações"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/Transaction" }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Transação não encontrada"
+          }
+        }
+      }
+    },
+    "/transactions/{id}/refund": {
+      "post": {
+        "summary": "Estornar transação",
+        "description": "Processa o estorno de uma transação através do gateway original",
+        "tags": ["Transações"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Estorno realizado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/RefundResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Estorno falhou",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Transação não encontrada"
+          }
+        }
+      }
+    }
+  }
+}
