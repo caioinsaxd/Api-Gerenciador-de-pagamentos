@@ -1,5 +1,3 @@
-
-
 import { Env } from '@adonisjs/core/env'
 
 export default await Env.create(new URL('../', import.meta.url), {
@@ -15,4 +13,7 @@ export default await Env.create(new URL('../', import.meta.url), {
 
   // Session
   SESSION_DRIVER: Env.schema.enum(['cookie', 'memory', 'database'] as const),
+
+  // Gateway
+  GATEWAY_TIMEOUT: Env.schema.number(),
 })

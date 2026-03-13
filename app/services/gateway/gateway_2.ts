@@ -1,4 +1,9 @@
-import { BaseGateway, type PaymentData, type PaymentResult, type RefundResult } from './base_gateway.js'
+import {
+  BaseGateway,
+  type PaymentData,
+  type PaymentResult,
+  type RefundResult,
+} from './base_gateway.js'
 import env from '#start/env'
 
 interface Gateway2Response {
@@ -9,8 +14,8 @@ interface Gateway2Response {
 export class Gateway2 extends BaseGateway {
   name = 'Gateway 2'
   get baseUrl() {
-    const env = process.env.NODE_ENV || 'development'
-    if (env === 'docker' || env === 'test') {
+    const nodeEnv = process.env.NODE_ENV || 'development'
+    if (nodeEnv === 'docker' || nodeEnv === 'test') {
       return 'http://gateways:3002'
     }
     return 'http://localhost:3002'
@@ -25,7 +30,7 @@ export class Gateway2 extends BaseGateway {
   }
 
   async processPayment(data: PaymentData): Promise<PaymentResult> {
-    const response = await fetch(`${this.baseUrl}/transacoes`, {
+    const response = await this.fetchWithTimeout(`${this.baseUrl}/transacoes`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -41,7 +46,7 @@ export class Gateway2 extends BaseGateway {
       }),
     })
 
-    const result = await response.json() as Gateway2Response
+    const result = (await response.json()) as Gateway2Response
 
     if (!response.ok) {
       return {
@@ -58,7 +63,7 @@ export class Gateway2 extends BaseGateway {
   }
 
   async processRefund(externalId: string): Promise<RefundResult> {
-    const response = await fetch(`${this.baseUrl}/transacoes/reembolso`, {
+    const response = await this.fetchWithTimeout(`${this.baseUrl}/transacoes/reembolso`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -69,7 +74,7 @@ export class Gateway2 extends BaseGateway {
     })
 
     if (!response.ok) {
-      const result = await response.json() as Gateway2Response
+      const result = (await response.json()) as Gateway2Response
       return {
         success: false,
         error: result.message || 'Refund failed',

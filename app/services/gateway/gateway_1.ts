@@ -1,4 +1,9 @@
-import { BaseGateway, type PaymentData, type PaymentResult, type RefundResult } from './base_gateway.js'
+import {
+  BaseGateway,
+  type PaymentData,
+  type PaymentResult,
+  type RefundResult,
+} from './base_gateway.js'
 
 interface Gateway1LoginResponse {
   token: string
@@ -22,7 +27,7 @@ export class Gateway1 extends BaseGateway {
   private token: string | null = null
 
   async login(): Promise<void> {
-    const response = await fetch(`${this.baseUrl}/login`, {
+    const response = await this.fetchWithTimeout(`${this.baseUrl}/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -35,7 +40,7 @@ export class Gateway1 extends BaseGateway {
       throw new Error('Failed to login to Gateway 1')
     }
 
-    const data = await response.json() as Gateway1LoginResponse
+    const data = (await response.json()) as Gateway1LoginResponse
     this.token = data.token
   }
 
@@ -44,11 +49,11 @@ export class Gateway1 extends BaseGateway {
       await this.login()
     }
 
-    const response = await fetch(`${this.baseUrl}/transactions`, {
+    const response = await this.fetchWithTimeout(`${this.baseUrl}/transactions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${this.token}`,
+        'Authorization': `Bearer ${this.token}`,
       },
       body: JSON.stringify({
         amount: data.amount,
@@ -59,7 +64,7 @@ export class Gateway1 extends BaseGateway {
       }),
     })
 
-    const result = await response.json() as Gateway1Response
+    const result = (await response.json()) as Gateway1Response
 
     if (!response.ok) {
       return {
@@ -80,16 +85,19 @@ export class Gateway1 extends BaseGateway {
       await this.login()
     }
 
-    const response = await fetch(`${this.baseUrl}/transactions/${externalId}/charge_back`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${this.token}`,
-      },
-    })
+    const response = await this.fetchWithTimeout(
+      `${this.baseUrl}/transactions/${externalId}/charge_back`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.token}`,
+        },
+      }
+    )
 
     if (!response.ok) {
-      const result = await response.json() as Gateway1Response
+      const result = (await response.json()) as Gateway1Response
       return {
         success: false,
         error: result.message || 'Refund failed',
