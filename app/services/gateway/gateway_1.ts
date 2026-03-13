@@ -11,7 +11,13 @@ interface Gateway1Response {
 
 export class Gateway1 extends BaseGateway {
   name = 'Gateway 1'
-  baseUrl = 'http://localhost:3001'
+  get baseUrl() {
+    const env = process.env.NODE_ENV || 'development'
+    if (env === 'docker' || env === 'test') {
+      return 'http://gateways:3001'
+    }
+    return 'http://localhost:3001'
+  }
 
   private token: string | null = null
 

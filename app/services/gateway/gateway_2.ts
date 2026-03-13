@@ -8,7 +8,13 @@ interface Gateway2Response {
 
 export class Gateway2 extends BaseGateway {
   name = 'Gateway 2'
-  baseUrl = 'http://localhost:3002'
+  get baseUrl() {
+    const env = process.env.NODE_ENV || 'development'
+    if (env === 'docker' || env === 'test') {
+      return 'http://gateways:3002'
+    }
+    return 'http://localhost:3002'
+  }
 
   private get authToken(): string {
     return env.get('GATEWAY_2_TOKEN') ?? ''
