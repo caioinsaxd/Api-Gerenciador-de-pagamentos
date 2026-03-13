@@ -7,6 +7,9 @@ import testUtils from '@adonisjs/core/services/test_utils'
 import { authApiClient } from '@adonisjs/auth/plugins/api_client'
 import { sessionApiClient } from '@adonisjs/session/plugins/api_client'
 
+const BASE_URL = 'http://localhost:3333'
+export const baseUrl = `${BASE_URL}/api/v1`
+
 /**
  * This file is imported by the "bin/test.ts" entrypoint file
  */
