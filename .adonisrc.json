@@ -1,0 +1,55 @@
+{
+  "typescript": {
+    "project": "./tsconfig.json",
+    "spellCheck": false
+  },
+  "directories": {
+    "config": "./config",
+    "public": "./public",
+    "contracts": "./contracts",
+    "providers": "./providers",
+    "database": "./database",
+    "migrations": "./database/migrations",
+    "seeds": "./database/seeders",
+    "factory": "./database/factories",
+    "middleware": "./app/middleware",
+    "listeners": "./app/listeners",
+    "exceptions": "./app/exceptions",
+    "validators": "./app/validators",
+    "commands": "./commands",
+    "start": "./start",
+    "tmp": "./tmp"
+  },
+  "preloads": [
+    "./start/routes",
+    "./start/kernel"
+  ],
+  "metaFiles": [
+    {
+      "pattern": ".adonisrc.json",
+      "reloadServer": false
+    },
+    {
+      "pattern": "package.json",
+      "reloadServer": false
+    },
+    {
+      "pattern": ".env",
+      "reloadServer": false
+    },
+    {
+      "pattern": ".env.example",
+      "reloadServer": false
+    },
+    {
+      "pattern": "./resources/views/**",
+      "reloadServer": false
+    }
+  ],
+  "build": {
+    "into": "./build",
+    "assets": [],
+    "precopy": [],
+    "postcopy": []
+  }
+}
