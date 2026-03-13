@@ -238,6 +238,37 @@
         }
       }
     },
+    "/auth/logout": {
+      "post": {
+        "summary": "Logout do usuário",
+        "description": "Desloga o usuário e invalida o token JWT",
+        "tags": ["Autenticação"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Usuário deslogado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autorizado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/purchase": {
       "post": {
         "summary": "Processar pagamento",
