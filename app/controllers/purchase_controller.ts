@@ -26,7 +26,7 @@ export default class PurchaseController {
     let totalAmount = 0
     for (const item of data.products) {
       const product = productMap.get(item.id)
-      totalAmount += product!.amount * item.quantity
+      totalAmount += product!.value * item.quantity
     }
 
     let client = await Client.findBy('email', data.email)

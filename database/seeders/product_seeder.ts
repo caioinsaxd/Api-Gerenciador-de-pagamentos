@@ -4,9 +4,9 @@ import Product from '#models/product'
 export default class extends BaseSeeder {
   async run() {
     await Product.createMany([
-      { name: 'Produto A', amount: 1000 },
-      { name: 'Produto B', amount: 2500 },
-      { name: 'Produto C', amount: 500 },
+      { name: 'Produto A', value: 1000 },
+      { name: 'Produto B', value: 2500 },
+      { name: 'Produto C', value: 500 },
     ])
   }
 }
