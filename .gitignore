@@ -34,3 +34,6 @@ coverage
 
 # Logs
 *.log
+
+#instructions
+instructions.md
