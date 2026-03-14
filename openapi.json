@@ -85,12 +85,25 @@
       },
       "PurchaseRequest": {
         "type": "object",
-        "required": ["amount", "name", "email", "cardNumber", "cvv"],
+        "required": ["products", "name", "email", "cardNumber", "cvv"],
         "properties": {
-          "amount": {
-            "type": "integer",
-            "description": "Valor em centavos",
-            "example": 1000
+          "products": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["id", "quantity"],
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "description": "ID do produto"
+                },
+                "quantity": {
+                  "type": "integer",
+                  "description": "Quantidade"
+                }
+              }
+            },
+            "example": [{"id": 1, "quantity": 2}]
           },
           "name": {
             "type": "string",
