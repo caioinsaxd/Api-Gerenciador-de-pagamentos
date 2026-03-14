@@ -7,7 +7,7 @@ test.group('Fluxo de Compra', () => {
     const email = `compra${Date.now()}@test.com`
 
     const response = await client.post(`${baseUrl}/purchase`).json({
-      amount: 1000,
+      products: [{ id: 1, quantity: 1 }],
       name: 'Teste Compra',
       email,
       cardNumber: '5569000000006063',
@@ -22,7 +22,7 @@ test.group('Fluxo de Compra', () => {
     const email = `novocliente${Date.now()}@test.com`
 
     const response = await client.post(`${baseUrl}/purchase`).json({
-      amount: 1000,
+      products: [{ id: 1, quantity: 1 }],
       name: 'Novo Cliente',
       email,
       cardNumber: '5569000000006063',

@@ -1,13 +1,33 @@
 import { purchaseValidator } from '#validators/purchase'
 import Client from '#models/client'
 import Gateway from '#models/gateway'
+import Product from '#models/product'
 import Transaction from '#models/transaction'
 import { GatewayManager } from '#services/gateway_manager'
 import type { HttpContext } from '@adonisjs/core/http'
+import db from '@adonisjs/lucid/services/db'
 
 export default class PurchaseController {
   async store({ request, response }: HttpContext) {
     const data = await request.validateUsing(purchaseValidator)
+
+    const productIds = data.products.map((p) => p.id)
+    const products = await Product.query().whereIn('id', productIds)
+
+    if (products.length !== productIds.length) {
+      return response.status(400).json({
+        success: false,
+        error: 'One or more products not found',
+      })
+    }
+
+    const productMap = new Map(products.map((p) => [p.id, p]))
+
+    let totalAmount = 0
+    for (const item of data.products) {
+      const product = productMap.get(item.id)
+      totalAmount += product!.amount * item.quantity
+    }
 
     let client = await Client.findBy('email', data.email)
     if (!client) {
@@ -19,7 +39,7 @@ export default class PurchaseController {
 
     const gatewayManager = new GatewayManager()
     const paymentResult = await gatewayManager.processPayment({
-      amount: data.amount,
+      amount: totalAmount,
       name: data.name,
       email: data.email,
       cardNumber: data.cardNumber,
@@ -45,16 +65,25 @@ export default class PurchaseController {
       clientId: client.id,
       gatewayId: gateway?.id,
       externalId: paymentResult.externalId,
-      amount: data.amount,
+      amount: totalAmount,
       cardLastNumbers: data.cardNumber.slice(-4),
       status: 'APPROVED',
     })
+
+    for (const item of data.products) {
+      await db.table('transaction_products').insert({
+        transaction_id: transaction.id,
+        product_id: item.id,
+        quantity: item.quantity,
+        created_at: new Date(),
+      })
+    }
 
     return response.json({
       success: true,
       transactionId: transaction.id,
       externalId: paymentResult.externalId,
-      amount: data.amount,
+      amount: totalAmount,
       status: transaction.status,
     })
   }

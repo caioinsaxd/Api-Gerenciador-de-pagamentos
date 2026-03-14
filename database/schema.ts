@@ -8,7 +8,7 @@ import { BaseModel, column } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 
 export class AuthAccessTokenSchema extends BaseModel {
-  static $columns = [
+   static $columns = [
     'abilities',
     'createdAt',
     'expiresAt',
@@ -90,8 +90,23 @@ export class ProductSchema extends BaseModel {
   declare updatedAt: DateTime | null
 }
 
+export class TransactionProductSchema extends BaseModel {
+  static $columns = ['createdAt', 'id', 'productId', 'quantity', 'transactionId'] as const
+  $columns = TransactionProductSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare productId: number | null
+  @column()
+  declare quantity: number
+  @column()
+  declare transactionId: number | null
+}
+
 export class TransactionSchema extends BaseModel {
-  static $columns = [
+ static $columns = [
     'amount',
     'cardLastNumbers',
     'clientId',
@@ -102,7 +117,7 @@ export class TransactionSchema extends BaseModel {
     'status',
     'updatedAt',
   ] as const
-  $columns = TransactionSchema.$columns
+    $columns = TransactionSchema.$columns
   @column()
   declare amount: number
   @column()
