@@ -256,6 +256,30 @@ A collection está disponível em: [postman/collection.json](postman/collection.
 
 ---
 
+## Exemplos no Postman
+
+### Login
+
+![Login](docs/postman/login.png)
+
+### Compra
+
+![Compra](docs/postman/purchase.png)
+
+### Listar Transações
+
+![Listar Transações](docs/postman/transactions.png)
+
+### Detalhes da Transação
+
+![Detalhes da Transação](docs/postman/transaction_details.png)
+
+### Estorno
+
+![Estorno](docs/postman/refund.png)
+
+---
+
 ---
 
 ## Tecnologias
