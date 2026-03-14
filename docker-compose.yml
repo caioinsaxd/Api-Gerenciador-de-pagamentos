@@ -19,7 +19,7 @@ services:
     image: matheusprotzen/gateways-mock
     container_name: gateways
     environment:
-      REMOVE_AUTH: 'true'
+      REMOVE_AUTH: 'false'
     ports:
       - "3001:3001"
       - "3002:3002"
